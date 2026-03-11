@@ -1,0 +1,6 @@
+customtkinter
+packaging
+send2trash
+darkdetect
+pillow
+pyinstaller

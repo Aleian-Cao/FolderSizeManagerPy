@@ -1,0 +1,24 @@
+# Environments
+.venv/
+env/
+venv/
+__pycache__/
+
+# Distribution / Packaging
+dist/
+build/
+*.spec
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# System
+Thumbs.db
+Desktop.ini
+
+# User Config
+.folder_size_manager_config.json
