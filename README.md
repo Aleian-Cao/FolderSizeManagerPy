@@ -1,5 +1,9 @@
 # FileSMPy - Folder Size Manager
 
+<div align="center">
+  <img src="FolderSizeManagerPy%202%20logo.ico" alt="FileSMPy Logo" width="128" height="128">
+</div>
+
 **FileSMPy** là ứng dụng quản lý dung lượng thư mục hiện đại, được viết bằng Python (CustomTkinter) với giao diện trực quan và hiệu năng cao.
 
 ## Tính năng nổi bật
