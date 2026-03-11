@@ -5,7 +5,7 @@ venv/
 __pycache__/
 
 # Distribution / Packaging
-dist/
+# dist/  <-- Cho phép upload folder dist chứa file EXE
 build/
 *.spec
 
