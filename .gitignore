@@ -5,9 +5,18 @@ venv/
 __pycache__/
 
 # Distribution / Packaging
-# dist/  <-- Cho phép upload folder dist chứa file EXE
 build/
 *.spec
+
+# Security - Sensitive Files
+*.pfx
+*.p12
+
+# Release Artifacts (Keep dist/ for version history if needed, but usually ignored in source control)
+# Uncomment the line below if you don't want to commit executables
+# dist/
+Release_Package/
+*.zip
 
 # IDEs
 .vscode/

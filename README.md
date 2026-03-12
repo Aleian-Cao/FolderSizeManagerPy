@@ -50,13 +50,47 @@
     python main_modern.py
     ```
 
-## Đóng gói thành EXE
+## Đóng gói ứng dụng (Packaging)
 
-Để tạo file chạy độc lập (`.exe`), sử dụng lệnh sau:
+Dự án hỗ trợ 2 phương thức đóng gói:
+1.  **Portable (Chạy ngay):** File `.exe` độc lập, không cần cài đặt.
+2.  **Installer (Chuyên nghiệp):** File cài đặt `.exe` với Setup Wizard, Shortcut Desktop, Context Menu, v.v.
 
-```bash
-pyinstaller --noconfirm --onefile --windowed --name "FileSMPy" --icon "FolderSizeManagerPy 2 logo.ico" --add-data ".venv\Lib\site-packages\customtkinter;customtkinter" --hidden-import "packaging" --hidden-import "customtkinter" --hidden-import "darkdetect" --hidden-import "PIL" --hidden-import "PIL.Image" "main_modern.py"
-```
+### Cách thực hiện
+
+1.  **Cài đặt Inno Setup:**
+    - Tải và cài đặt [Inno Setup 6](https://jrsoftware.org/isdl.php).
+    - Đảm bảo cài đặt đầy đủ các thành phần mặc định.
+
+2.  **Chạy script đóng gói tự động:**
+    Script này sẽ tự động build file Portable bằng PyInstaller và sau đó tạo bộ cài đặt bằng Inno Setup.
+
+    ```bash
+    python build_installer.py
+    ```
+
+    - **Output Portable:** `dist/FileSMPy.exe`
+    - **Output Installer:** `dist/Install_FSMPy.exe`
+
+### Cấu hình Installer (Nâng cao)
+File cấu hình cho bộ cài đặt nằm tại `setup_script.iss`. Bạn có thể mở file này bằng Inno Setup Compiler để chỉnh sửa:
+- Tên ứng dụng, phiên bản, nhà phát hành.
+- Các tùy chọn Shortcut, Registry.
+- Icon và hình ảnh.
+
+## Hướng dẫn cài đặt cho người dùng (Self-signed)
+
+Nếu bạn sử dụng chứng chỉ tự ký (Self-signed), người dùng cần cài đặt chứng chỉ này để Windows tin tưởng ứng dụng:
+
+1.  Gửi file `MyCert.cer` cho người dùng.
+2.  Hướng dẫn họ thực hiện:
+    - Click đúp vào file `.cer`.
+    - Chọn **Install Certificate**.
+    - Chọn **Local Machine** -> Next.
+    - Chọn **Place all certificates in the following store**.
+    - Browse và chọn **Trusted Root Certification Authorities**.
+    - Next -> Finish.
+3.  Sau khi cài chứng chỉ, ứng dụng sẽ không còn bị cảnh báo "Unknown Publisher".
 
 ## Cấu trúc dự án
 

@@ -24,8 +24,14 @@ class FolderSizeManagerApp:
         # Save config on exit
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
+        # Icon
+        icon_path = "FolderSizeManagerPy 2 logo.ico"
+        if not os.path.exists(icon_path):
+            icon_path = "app.ico"
+            
         try:
-            self.root.iconbitmap("app.ico")
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
         except:
             pass
 
@@ -190,7 +196,7 @@ class FolderSizeManagerApp:
     def start_scan(self):
         path = self.path_var.get()
         if not os.path.exists(path):
-            messagebox.showerror("Lỗi", "Đường dẫn không tồn tại!")
+            messagebox.showerror("Lỗi", f"Đường dẫn không tồn tại:\n{path}")
             return
 
         self.btn_scan.config(state=tk.DISABLED)
@@ -319,15 +325,20 @@ class FolderSizeManagerApp:
             name = item['text']
             path = item['values'][2]
             
-            # Normalize path (remove long path prefix if exists)
-            clean_path = path
-            if clean_path.startswith("\\\\?\\"):
-                clean_path = clean_path[4:]
+            # Normalize path (handle long paths)
+            clean_path = os.path.abspath(path)
+            if len(clean_path) > 255 and not clean_path.startswith("\\\\?\\"):
+                clean_path = "\\\\?\\" + clean_path
                 
             if messagebox.askyesno("Xác nhận", f"Chuyển '{name}' vào Thùng Rác?"):
                 if not os.path.exists(clean_path):
-                    messagebox.showerror("Lỗi", "File/Thư mục không còn tồn tại!")
-                    return
+                    # Remove \\?\ prefix for check if necessary, but abspath handles it
+                    # But if path doesn't exist with prefix, maybe try without? No.
+                    if clean_path.startswith("\\\\?\\") and os.path.exists(clean_path[4:]):
+                        clean_path = clean_path[4:]
+                    else:
+                        messagebox.showerror("Lỗi", f"File/Thư mục không còn tồn tại:\n{path}")
+                        return
 
                 try:
                     send2trash(clean_path)
@@ -346,11 +357,14 @@ class FolderSizeManagerApp:
             if not os.path.exists(WINRAR_PATH):
                 messagebox.showerror("Lỗi", f"Thiếu WinRAR tại {WINRAR_PATH}")
                 return
+            
+            # Use absolute path
+            path_for_cmd = os.path.abspath(path)
 
             if messagebox.askyesno("Xác nhận", f"Nén '{name}' và XOÁ gốc?"):
                 parent = os.path.dirname(path)
                 archive_path = os.path.join(parent, f"{name}.rar")
-                cmd = [WINRAR_PATH, "a", "-df", "-ep1", archive_path, path]
+                cmd = [WINRAR_PATH, "a", "-df", "-ep1", archive_path, path_for_cmd]
                 
                 self.progress.pack(side=tk.LEFT, padx=10)
                 self.progress.start(10)

@@ -245,7 +245,7 @@ class FolderSizeManagerApp(ctk.CTk):
     def start_scan(self):
         path = self.path_var.get()
         if not os.path.exists(path):
-            messagebox.showerror("Error", "Path not found!")
+            messagebox.showerror("Error", f"Path not found:\n{path}")
             return
 
         self.btn_scan.configure(state="disabled")
@@ -411,19 +411,27 @@ class FolderSizeManagerApp(ctk.CTk):
             name = item['text'].strip()
             path = item['values'][2]
             
-            clean_path = path
-            if clean_path.startswith("\\\\?\\"): clean_path = clean_path[4:]
+            clean_path = os.path.abspath(path)
+            # Use long path prefix if needed
+            if len(clean_path) > 255 and not clean_path.startswith("\\\\?\\"):
+                clean_path = "\\\\?\\" + clean_path
                 
             if messagebox.askyesno("Confirm", f"Move '{name}' to Recycle Bin?"):
-                if not os.path.exists(clean_path):
-                    messagebox.showerror("Error", "File not found!")
+                # Check existence (handle prefix)
+                exists = os.path.exists(clean_path)
+                if not exists and clean_path.startswith("\\\\?\\"):
+                    exists = os.path.exists(clean_path[4:])
+                    if exists: clean_path = clean_path[4:]
+                
+                if not exists:
+                    messagebox.showerror("Error", f"File not found:\n{path}")
                     return
                 try:
                     send2trash(clean_path)
                     self.tree.delete(self.tree.selection()[0])
                     self.status_label.configure(text=f"Deleted: {name}")
                 except Exception as e:
-                    messagebox.showerror("Error", str(e))
+                    messagebox.showerror("Error", f"Failed to delete.\nDetails: {str(e)}")
 
     def winrar_zip_delete(self):
         item = self.get_selected()
@@ -434,11 +442,14 @@ class FolderSizeManagerApp(ctk.CTk):
             if not os.path.exists(WINRAR_PATH):
                 messagebox.showerror("Error", "WinRAR not found!")
                 return
+            
+            # Use absolute path
+            path_for_cmd = os.path.abspath(path)
 
             if messagebox.askyesno("Confirm", f"Zip '{name}' and Delete original?"):
                 parent = os.path.dirname(path)
                 archive_path = os.path.join(parent, f"{name}.rar")
-                cmd = [WINRAR_PATH, "a", "-df", "-ep1", archive_path, path]
+                cmd = [WINRAR_PATH, "a", "-df", "-ep1", archive_path, path_for_cmd]
                 
                 self.progress.grid()
                 self.progress.start()

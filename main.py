@@ -18,8 +18,13 @@ class FolderSizeManagerApp:
         self.root.geometry("1000x700")
         
         # Set icon if exists
+        icon_path = "FolderSizeManagerPy 2 logo.ico"
+        if not os.path.exists(icon_path):
+            icon_path = "app.ico"
+            
         try:
-            self.root.iconbitmap("app.ico")
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
         except:
             pass
 
@@ -119,7 +124,7 @@ class FolderSizeManagerApp:
     def start_scan(self):
         path = self.path_var.get()
         if not os.path.exists(path):
-            messagebox.showerror("Lỗi", "Đường dẫn không tồn tại!")
+            messagebox.showerror("Lỗi", f"Đường dẫn không tồn tại:\n{path}")
             return
 
         # Disable button
@@ -210,11 +215,19 @@ class FolderSizeManagerApp:
             path = item[3]
             if messagebox.askyesno("Xác nhận", f"Bạn có chắc muốn chuyển '{name}' vào Thùng Rác?"):
                 try:
+                    # Fix for long paths on Windows
+                    if len(path) > 255 and not path.startswith("\\\\?\\"):
+                        path = "\\\\?\\" + os.path.abspath(path)
+                        
+                    if not os.path.exists(path):
+                        messagebox.showerror("Lỗi", f"File/Thư mục không tồn tại:\n{path}")
+                        return
+
                     send2trash(path)
                     self.tree.delete(self.tree.selection()[0])
                     self.status_var.set(f"Đã chuyển vào thùng rác: {name}")
                 except Exception as e:
-                    messagebox.showerror("Lỗi", str(e))
+                    messagebox.showerror("Lỗi", f"Không thể xoá mục này.\nLỗi chi tiết: {str(e)}")
 
     def winrar_zip_delete(self):
         item = self.get_selected()
@@ -226,13 +239,18 @@ class FolderSizeManagerApp:
                 messagebox.showerror("Lỗi", f"Không tìm thấy WinRAR tại {WINRAR_PATH}")
                 return
 
+            # Fix for long paths
+            path_for_cmd = os.path.abspath(path)
+            # WinRAR usually handles long paths fine, but let's be safe if it's extremely long
+            # However, for subprocess on Windows, we don't strictly need \\?\ if we don't use internal python IO
+            
             if messagebox.askyesno("Xác nhận WinRAR", f"Nén '{name}' và XOÁ gốc?"):
                 parent = os.path.dirname(path)
                 archive_name = f"{name}.rar"
                 archive_path = os.path.join(parent, archive_name)
                 
                 # WinRAR CLI: a -df -ep1 "archive" "source"
-                cmd = [WINRAR_PATH, "a", "-df", "-ep1", archive_path, path]
+                cmd = [WINRAR_PATH, "a", "-df", "-ep1", archive_path, path_for_cmd]
                 
                 # Show progress
                 self.progress.pack(side=tk.LEFT, padx=10)
